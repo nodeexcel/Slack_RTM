@@ -5,7 +5,7 @@ var moment = require('moment');
 require('node-import');
 imports('config/index');
 
-exports.cancel = function (message, dm, id, date, time, rtm, user, callback) {
+exports.cancel = function (message, dm, id, date, rtm, user, callback) {
     to_session.exists(function (res) {
         var check_session = res[id] ? true : false;
         if (!check_session) {
@@ -38,7 +38,7 @@ exports.cancel = function (message, dm, id, date, time, rtm, user, callback) {
                                     var res = JSON.parse(response);
                                     if (res.ok == true) {
                                         rtm.sendMessage(user.name + '!' + ' can you please provide me the details \n from (DD-MM-YYYY) ', dm.id);
-                                        to_session.start(id, time, callback);
+                                        to_session.start(id);
                                         to_session.set(id, 'command', 'from');
                                     } else if (res.ok == false) {
                                         rtm.sendMessage("invalid information", dm.id);

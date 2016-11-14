@@ -22,7 +22,8 @@ exports.get = function (id, key, callback) {
     }
 };
 
-exports.touch = function (id, time) {
+exports.touch = function (id) {
+    var time = moment().unix();
     if (session[id]) {
         session[id].start = time;
         clearTimeout(session[id].timeout);

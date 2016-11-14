@@ -30,7 +30,6 @@ rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
 var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 
 rtm.on(RTM_EVENTS.MESSAGE, function (message) {
-    var time = moment().format('h:mm:ss');
     var user = rtm.dataStore.getUserById(message.user);
     if (user == undefined) {
         return;
@@ -59,8 +58,8 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             if (!_session.get(user.name, 'sub_command')) {
                 _session.set(user.name, 'sub_command', message.text);
             }
-            var id = message.user;
-            leave._apply(message, dm, id, time, rtm, user, function (response) {
+            var id = user.name;
+            leave._apply(message, dm, id, rtm, user, function (response) {
             });
         } else if (message.text == 'status' || _subCommand == 'apply') {
             if (!_session.get(user.name, 'sub_command')) {
@@ -72,8 +71,8 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     } else if (_command == 'help') {
         rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
     } else if (_command == 'cancel') {
-        var id = message.user;
-        cancel_leave.cancel(message, dm, id, time, rtm, user, function (req, response, msg) {
+        var id = user.name;
+        cancel_leave.cancel(message, dm, id, rtm, user, function (req, response, msg) {
         });
     } else {
         rtm.sendMessage("I don't understand" + " " + message.text + ". " + "Please use 'help' to see all options" + '.', dm.id);

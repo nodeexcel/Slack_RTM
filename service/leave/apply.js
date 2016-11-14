@@ -4,11 +4,11 @@ var moment = require('moment');
 require('node-import');
 imports('config/index');
 
-exports._apply = function (message, dm, id, time, rtm, user, callback) {
+exports._apply = function (message, dm, id, rtm, user, callback) {
     to_session.exists(function (res) {
         var check_session = res[id] ? true : false;
         if (!check_session) {
-            to_session.start(id, time, callback);
+            to_session.start(id);
             to_session.set(id, 'command', 'from');
             rtm.sendMessage(user.name + '!' + ' can you please provide me the details \n from (DD-MM-YYYY) ', dm.id);
         } else if (check_session) {
