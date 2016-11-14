@@ -5,7 +5,7 @@ var moment = require('moment');
 require('node-import');
 imports('config/index');
 
-exports.cancel = function (message, dm, id, date, rtm, user, callback) {
+exports.cancel = function (message, dm, id, rtm, user, callback) {
     to_session.exists(function (res) {
         var check_session = res[id] ? true : false;
         if (!check_session) {
@@ -54,6 +54,8 @@ exports.cancel = function (message, dm, id, date, rtm, user, callback) {
         } else if (check_session) {
             var result = to_session.get(id, 'command');
             if (result == 'from') {
+                var dateFormat = "DD-MM-YYYY";
+                var date = moment(message.text, dateFormat, true).isValid();
                 if (date) {
                     to_session.touch(id);
                     to_session.set(id, 'from', message.text);
@@ -65,11 +67,11 @@ exports.cancel = function (message, dm, id, date, rtm, user, callback) {
                         request_send.cancel(message, paramaters, url, function (response, error, msg) {
                             var resp = JSON.parse(response);
                             if (resp.error == 1) {
-                                to_session.destory(id);
+                                to_session.destroy(id, rtm);
                                 rtm.sendMessage(resp.data.message, dm.id);
                                 callback(0);
                             } else if (resp.error == 0) {
-                                to_session.destory(id);
+                                to_session.destroy(id, rtm);
                                 rtm.sendMessage(resp.data.message, dm.id);
                                 callback(0);
                             }
