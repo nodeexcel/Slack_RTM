@@ -7,6 +7,7 @@ var router = express.Router();
 const leave_status = require('../service/leave/status');
 var leave = require('../service/leave/apply');
 var to_session = require('../service/session');
+var cancel_leave = require('../service/leave/cancel');
 var RtmClient = require('@slack/client').RtmClient;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
@@ -42,7 +43,6 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     }
     var dateFormat = "DD-MM-YYYY";
     var date = moment(message.text, dateFormat, true).isValid();
-    console.log(p + "::::: msg");
     if (p == 0) {
         to_session.start(id, time);
     }
@@ -62,6 +62,12 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         p = 2;
         var id = message.user;
         leave._apply(message, dm, id, date, time, rtm, user, function (response) {
+            p = response * 1;
+        });
+    } else if (result == 'cancel' || p == 3) {
+        p = 3;
+        var id = message.user;
+        cancel_leave.cancel(message, dm, id, date, time, rtm, user, function (req, response, msg) {
             p = response * 1;
         });
     } else {

@@ -4,7 +4,7 @@ const request_send = require('../slack/send');
 require('node-import');
 imports('config/index');
 
-exports.fetch = function (message, dm,rtm) {
+exports.fetch = function (message, dm, rtm) {
     var approved_message = '';
     var pending_message = '';
     var cancelled_message = '';
@@ -28,10 +28,8 @@ exports.fetch = function (message, dm,rtm) {
                         if (data1.data.leaves[i].status == "Approved") {
                             approved_message = approved_message + 'Leave from: ' + data1.data.leaves[i].from_date + ' to: ' + data1.data.leaves[i].to_date + '\n';
                             console.log(approved_message)
-                            // rtm.sendMessage('\n applied leave from ' + data1.data.leaves[i].from_date + ' to ' + data1.data.leaves[i].to_date + '\n' + '*status:' + data1.data.leaves[i].status + '*', dm.id);
                         } else if (data1.data.leaves[i].status == "Pending") {
                             pending_message = pending_message + 'Leave from: ' + data1.data.leaves[i].from_date + ' to: ' + data1.data.leaves[i].to_date + '\n';
-                            // rtm.sendMessage('\n applied leave from ' + data1.data.leaves[i].from_date + ' to ' + data1.data.leaves[i].to_date + '\n' + '*status:' + data1.data.leaves[i].status + '*', dm.id);
                         } else if (data1.data.leaves[i].status == "Cancelled Request") {
                             cancelled_message = cancelled_message + 'Leave from: ' + data1.data.leaves[i].from_date + ' to: ' + data1.data.leaves[i].to_date + '\n';
                         }
