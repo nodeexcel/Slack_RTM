@@ -44,31 +44,38 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     if (!_session.exists(user.name)) {
         _session.start(user.name);
     }
-
+    var text = message.text;
     if (!_session.get(user.name, 'command')) {
         _session.set(user.name, 'command', message.text);
+        text = false;
     }
 
     var _command = _session.get(user.name, 'command');
     if (_command == 'hello' || _command == 'hi' || _command == 'helo' || _command == 'hey') {
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
     } else if (_command == 'leave') {
-        rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
-        var _subCommand = _session.get(user.name, 'sub_command');
-        if (message.text == 'apply' || _subCommand == 'apply') {
-            if (!_session.get(user.name, 'sub_command')) {
-                _session.set(user.name, 'sub_command', message.text);
-            }
-            var id = message.user;
-            leave._apply(message, dm, id, time, rtm, user, function (response) {
-            });
-        } else if (message.text == 'status' || _subCommand == 'apply') {
-            if (!_session.get(user.name, 'sub_command')) {
-                _session.set(user.name, 'sub_command', message.text);
-            }
-            leave_status.fetch(message, dm, rtm, function (req, response, msg) {
-            });
+        
+
+        if(text){
+              if (!_session.get(user.name, 'sub_command')) {
+                    _session.set(user.name, 'sub_command', text);
+                }
+                        var _subCommand = _session.get(user.name, 'sub_command');
+                        if (_subCommand == 'apply') {
+                            var id = message.user;
+                            leave._apply(message, dm, id, time, rtm, user, function (response) {
+                            });
+                        } else if ( _subCommand == 'status') {
+                            leave_status.fetch(message, dm, rtm, function (req, response, msg) {
+                            });
+                        }
+                 
+            
+        }else{
+            rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
         }
+        
+       
     } else if (_command == 'help') {
         rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
     } else if (_command == 'cancel') {
