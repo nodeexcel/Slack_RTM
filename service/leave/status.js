@@ -1,5 +1,5 @@
 var request = require('request');
-const request_send = require('../slack/send');
+var request_send = require('../slack/send');
 
 require('node-import');
 imports('config/index');

@@ -1,5 +1,5 @@
 var request = require('request');
-const request_send = require('../slack/send');
+var request_send = require('../slack/send');
 var to_session = require('../session');
 var moment = require('moment');
 require('node-import');

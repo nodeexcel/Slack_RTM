@@ -2,9 +2,8 @@ require('node-import');
 imports('config/index');
 
 var express = require('express');
-var moment = require('moment');
 var router = express.Router();
-const leave_status = require('../service/leave/status');
+var leave_status = require('../service/leave/status');
 var leave = require('../service/leave/apply');
 var _session = require('../service/session');
 var cancel_leave = require('../service/leave/cancel');
@@ -40,38 +39,39 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         return;
     }
 
-    if (!_session.exists(user.name)) {
-        _session.start(user.name);
+    if (!_session.exists(message.user)) {
+        _session.start(message.user);
+    }
+    var text = message.text;
+    if (!_session.get(message.user, 'command')) {
+        _session.set(message.user, 'command', message.text);
+        text = false;
     }
 
-    if (!_session.get(user.name, 'command')) {
-        _session.set(user.name, 'command', message.text);
-    }
-
-    var _command = _session.get(user.name, 'command');
+    var _command = _session.get(message.user, 'command');
     if (_command == 'hello' || _command == 'hi' || _command == 'helo' || _command == 'hey') {
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
     } else if (_command == 'leave') {
-        rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
-        var _subCommand = _session.get(user.name, 'sub_command');
-        if (message.text == 'apply' || _subCommand == 'apply') {
-            if (!_session.get(user.name, 'sub_command')) {
-                _session.set(user.name, 'sub_command', message.text);
+        if (text) {
+            if (!_session.get(message.user, 'sub_command')) {
+                _session.set(message.user, 'sub_command', text);
             }
-            var id = user.name;
-            leave._apply(message, dm, id, rtm, user, function (response) {
-            });
-        } else if (message.text == 'status' || _subCommand == 'apply') {
-            if (!_session.get(user.name, 'sub_command')) {
-                _session.set(user.name, 'sub_command', message.text);
+            var _subCommand = _session.get(message.user, 'sub_command');
+            if (_subCommand == 'apply') {
+                var id = message.user;
+                leave._apply(message, dm, id, rtm, user, function (response) {
+                });
+            } else if (_subCommand == 'status') {
+                leave_status.fetch(message, dm, rtm, function (req, response, msg) {
+                });
             }
-            leave_status.fetch(message, dm, rtm, function (req, response, msg) {
-            });
+        } else {
+            rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
         }
     } else if (_command == 'help') {
         rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
     } else if (_command == 'cancel') {
-        var id = user.name;
+        var id = message.user;
         cancel_leave.cancel(message, dm, id, rtm, user, function (req, response, msg) {
         });
     } else {
