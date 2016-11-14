@@ -50,8 +50,10 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
 
     var _command = _session.get(message.user, 'command');
     if (_command == 'hello' || _command == 'hi' || _command == 'helo' || _command == 'hey') {
+        _session.touch(message.user);
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
     } else if (_command == 'leave') {
+        _session.touch(message.user);
         if (text) {
             if (!_session.get(message.user, 'sub_command')) {
                 _session.set(message.user, 'sub_command', text);
@@ -69,12 +71,15 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
         }
     } else if (_command == 'help') {
+        _session.touch(message.user);
         rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
     } else if (_command == 'cancel') {
+        _session.touch(message.user);
         var id = message.user;
         cancel_leave.cancel(message, dm, id, rtm, user, function (req, response, msg) {
         });
     } else {
+        _session.touch(message.user);
         rtm.sendMessage("I don't understand" + " " + message.text + ". " + "Please use 'help' to see all options" + '.', dm.id);
     }
 });
