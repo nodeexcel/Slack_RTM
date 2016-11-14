@@ -1,7 +1,17 @@
+var moment = require('moment');
 var session = {};
 
-exports.exists = function (cb) {
-    cb(session);
+//exports.exists = function (cb) {
+////    return session;
+//    cb(session);
+//};
+
+exports.exists = function (name) {
+    if (session[name]) {
+        return true;
+    } else {
+        return false;
+    }
 };
 
 exports.get = function (id, key, callback) {
@@ -30,7 +40,8 @@ exports.set = function (id, key, value) {
     }
 };
 
-exports.start = function (id, time) {
+exports.start = function (id) {
+    var time = moment().unix();
     session[id] = {};
     session[id].start = time;
     session[id].timeout = setTimeout(function () {

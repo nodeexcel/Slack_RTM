@@ -6,7 +6,7 @@ var moment = require('moment');
 var router = express.Router();
 const leave_status = require('../service/leave/status');
 var leave = require('../service/leave/apply');
-var to_session = require('../service/session');
+var _session = require('../service/session');
 var cancel_leave = require('../service/leave/cancel');
 var RtmClient = require('@slack/client').RtmClient;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
@@ -20,8 +20,6 @@ var rtm = new RtmClient(token, {
 
 rtm.start();
 
-var p = 0;
-
 // Wait for the client to connect
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
     var user = rtm.dataStore.getUserById(rtm.activeUserId);
@@ -33,42 +31,49 @@ var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 
 rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     var time = moment().format('h:mm:ss');
-    var user = rtm.dataStore.getUserById(message.user)
+    var user = rtm.dataStore.getUserById(message.user);
     if (user == undefined) {
         return;
     }
+//    var setId = user.name;
     var dm = rtm.dataStore.getDMByName(user.name);
     if (dm == undefined) {
         return;
     }
-    var dateFormat = "DD-MM-YYYY";
-    var date = moment(message.text, dateFormat, true).isValid();
-    if (p == 0) {
-        to_session.start(id, time);
+
+    if (!_session.exists(user.name)) {
+        _session.start(user.name);
     }
-    to_session.set(id, 'command', message.text);
-    var result = to_session.get(id, 'command');
-    if (result == 'hello' || result == 'hi' || result == 'helo' || result == 'hey') {
+
+    if (!_session.get(user.name, 'command')) {
+        _session.set(user.name, 'command', message.text);
+    }
+
+    var _command = _session.get(user.name, 'command');
+    if (_command == 'hello' || _command == 'hi' || _command == 'helo' || _command == 'hey') {
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
-    } else if (result == 'leave') {
+    } else if (_command == 'leave') {
         rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
-    } else if (result == 'help') {
+        var _subCommand = _session.get(user.name, 'sub_command');
+        if (message.text == 'apply' || _subCommand == 'apply') {
+            if (!_session.get(user.name, 'sub_command')) {
+                _session.set(user.name, 'sub_command', message.text);
+            }
+            var id = message.user;
+            leave._apply(message, dm, id, time, rtm, user, function (response) {
+            });
+        } else if (message.text == 'status' || _subCommand == 'apply') {
+            if (!_session.get(user.name, 'sub_command')) {
+                _session.set(user.name, 'sub_command', message.text);
+            }
+            leave_status.fetch(message, dm, rtm, function (req, response, msg) {
+            });
+        }
+    } else if (_command == 'help') {
         rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
-    } else if (result == 'status' || p == 1) {
-        p = 1;
-        leave_status.fetch(message, dm, rtm, function (req, response, msg) {
-        });
-    } else if (result == 'apply' || p == 2) {
-        p = 2;
+    } else if (_command == 'cancel') {
         var id = message.user;
-        leave._apply(message, dm, id, date, time, rtm, user, function (response) {
-            p = response * 1;
-        });
-    } else if (result == 'cancel' || p == 3) {
-        p = 3;
-        var id = message.user;
-        cancel_leave.cancel(message, dm, id, date, time, rtm, user, function (req, response, msg) {
-            p = response * 1;
+        cancel_leave.cancel(message, dm, id, time, rtm, user, function (req, response, msg) {
         });
     } else {
         rtm.sendMessage("I don't understand" + " " + message.text + ". " + "Please use 'help' to see all options" + '.', dm.id);

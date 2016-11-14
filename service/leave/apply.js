@@ -4,7 +4,7 @@ var moment = require('moment');
 require('node-import');
 imports('config/index');
 
-exports._apply = function (message, dm, id, date, time, rtm, user, callback) {
+exports._apply = function (message, dm, id, time, rtm, user, callback) {
     to_session.exists(function (res) {
         var check_session = res[id] ? true : false;
         if (!check_session) {
@@ -14,6 +14,8 @@ exports._apply = function (message, dm, id, date, time, rtm, user, callback) {
         } else if (check_session) {
             var result = to_session.get(id, 'command');
             if (result == 'from') {
+                var dateFormat = "DD-MM-YYYY";
+                var date = moment(message.text, dateFormat, true).isValid();
                 if (date) {
                     to_session.touch(id);
                     to_session.set(id, 'from', message.text);
@@ -23,6 +25,8 @@ exports._apply = function (message, dm, id, date, time, rtm, user, callback) {
                     rtm.sendMessage('Invalid Date. So please enter a valid date again in proper format from (DD-MM-YYYY)', dm.id);
                 }
             } else if (result == 'to') {
+                var dateFormat = "DD-MM-YYYY";
+                var date = moment(message.text, dateFormat, true).isValid();
                 if (date) {
                     to_session.touch(id);
                     to_session.set(id, 'to', message.text);
