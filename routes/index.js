@@ -2,11 +2,14 @@ require('node-import');
 imports('config/index');
 
 var express = require('express');
+var moment = require('moment');
 var router = express.Router();
 var leave_status = require('../service/leave/status');
 var leave = require('../service/leave/apply');
 var _session = require('../service/session');
 var cancel_leave = require('../service/leave/cancel');
+var _checkUser = require('../service/isAdmin');
+var _users = require('../service/leave/users');
 var RtmClient = require('@slack/client').RtmClient;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
@@ -37,6 +40,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     if (dm == undefined) {
         return;
     }
+
     var setId = dm.id;
     if (!_session.exists(setId)) {
         _session.start(setId);
@@ -54,18 +58,32 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
     } else if (_command == 'leave') {
         _session.touch(setId);
+        if (!_session.get(setId, 'role')) {
+            _checkUser.checkType(message.user, function (res) {
+                _session.set(setId, 'role', res.role.toLowerCase());
+                var _role = _session.get(setId, 'role');
+                if (_role == 'admin' || _role == 'hr') {
+                    rtm.sendMessage('These are more options for you: \n 3. users', dm.id);
+                }
+            });
+        }
         if (text) {
             if (!_session.get(setId, 'sub_command')) {
                 _session.set(setId, 'sub_command', text);
             }
             var _subCommand = _session.get(setId, 'sub_command');
             if (_subCommand == 'apply') {
-//                var id = setId;
                 leave._apply(message, dm, setId, rtm, user, function (response) {
                 });
             } else if (_subCommand == 'status') {
                 leave_status.fetch(message, dm, rtm, function (req, response, msg) {
                 });
+            } else if (_subCommand == 'users') {
+                _users.userDetail(message, dm, setId, rtm, function (res) {
+                });
+            } else {
+                _session.set(setId, 'sub_command', false);
+                rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from above options.", dm.id);
             }
         } else {
             rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
@@ -75,11 +93,11 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
     } else if (_command == 'cancel') {
         _session.touch(setId);
-//        var id = message.user;
         cancel_leave.cancel(message, dm, setId, rtm, user, function (req, response, msg) {
         });
     } else {
         _session.touch(setId);
+        _session.set(setId, 'command', false);
         rtm.sendMessage("I don't understand" + " " + message.text + ". " + "Please use 'help' to see all options" + '.', dm.id);
     }
 });

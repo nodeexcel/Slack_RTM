@@ -30,7 +30,7 @@ exports.touch = function (id) {
         session[id].timeout = setTimeout(function () {
             var rtm = exports.get(id, 'rtm');
             exports.destroy(id, rtm);
-        }, 5 * 1000);
+        }, 500 * 1000);
     } else {
     }
 };
@@ -49,7 +49,7 @@ exports.start = function (id) {
     session[id].timeout = setTimeout(function () {
         var rtm = exports.get(id, 'rtm');
         exports.destroy(id, rtm);
-    }, 5 * 1000);
+    }, 500 * 1000);
 };
 
 exports.destroy = function (id, rtm) {

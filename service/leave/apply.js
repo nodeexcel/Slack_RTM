@@ -58,7 +58,8 @@ exports._apply = function (message, dm, id, rtm, user, callback) {
             });
         } else {
             _session.set(id, 'task', 'from');
-            rtm.sendMessage('You must have to apply leave for more than one day !', dm.id);
+            rtm.sendMessage('You must have to apply leave for more than one day!', dm.id);
+            rtm.sendMessage(user.name + '!' + ' can you please provide me the details again \n from (DD-MM-YYYY) ', dm.id);
         }
     }
 };

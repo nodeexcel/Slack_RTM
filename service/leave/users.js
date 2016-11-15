@@ -1,0 +1,109 @@
+require('node-import');
+imports('config/index');
+var _session = require('../session');
+var _user = require('../isAdmin');
+var request_send = require('../slack/send');
+var moment = require('moment');
+
+exports.userDetail = function (message, dm, id, rtm, callback) {
+    var usersList = '', leaveList = '';
+    var validLeaves = [];
+    var task = _session.get(id, 'task');
+    if (!task) {
+        rtm.sendMessage('Please Wait..', dm.id);
+        _user.userList(message.user, function (res) {
+            _session.touch(id);
+            if (res.error == 0) {
+                for (i = 0; i < res.data.length; i++) {
+                    var row = res.data[i];
+                    var userName = row.name;
+                    var userId = row.user_Id;
+                    usersList = usersList + 'User Name: ' + userName + ', User Id: ' + userId + '\n';
+                }
+                url = config.url_chat;
+                var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Type : Users List", "text":"' + usersList + '", "fallback": "Message Send to Employee","color": "#36a64f"}]'};
+                request_send.message(message, paramaters, usersList, url, function (error, response, msg) {
+                    _session.set(id, 'task', 'setUserId');
+                    rtm.sendMessage('Let me which user you want to see leave status. Enter the User Id - ', dm.id);
+                });
+            } else {
+                rtm.sendMessage('Oops! Some error occurred. We are looking into it.', dm.id);
+            }
+        });
+    } else if (task == 'setUserId') {
+        _session.touch(id);
+        rtm.sendMessage('Please Wait..', dm.id);
+        _user.getUserLeave(message.user, message.text, function (res) {
+            _session.touch(id);
+            var month = moment().format('M');
+            var year = moment().format('YYYY');
+            var startMonth = moment('01-' + month + '-' + year, 'DD-MM-YYYY').unix();
+            if (month * 1 == 1 || month * 1 == 3 || month * 1 == 5 || month * 1 == 7 || month * 1 == 8 || month * 1 == 10 || month * 1 == 12) {
+                var endMonth = moment('31-' + month + '-' + year, 'DD-MM-YYYY').unix();
+            } else if (month * 1 == 4 || month * 1 == 6 || month * 1 == 9 || month * 1 == 11) {
+                endMonth = moment('30-' + month + '-' + year, 'DD-MM-YYYY').unix();
+            } else if (month * 1 == 2) {
+                endMonth = moment('28-' + month + '-' + year, 'DD-MM-YYYY').unix();
+            }
+            if (res.length > 0) {
+                for (i = 0; i < res.length; i++) {
+                    var row = res[i];
+                    var userId = row.user_Id;
+                    var status = row.status;
+                    var reason = row.reason;
+                    var fromDate = row.from_date;
+                    var toDate = row.to_date;
+                    var days = row.no_of_days;
+                    var unixfromDate = moment(fromDate, 'YYYY-MM-DD').unix();
+                    if ((unixfromDate * 1) >= (startMonth * 1) && (unixfromDate * 1) <= (endMonth * 1)) {
+                        validLeaves.push(row);
+                        leaveList = leaveList + 'Serial No.- ' + (i + 1) + '  User Id: ' + userId + ' Reason: ' + reason + ' Status: ' + status + ' From Date: ' + fromDate + ' To Date: ' + toDate + ' Number of Days: ' + days + '\n';
+                    }
+                }
+                _session.set(id, 'leaveList', validLeaves);
+                url = config.url_chat;
+                var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Type : Leaves List", "text":"' + leaveList + '", "fallback": "Message Send to Employee","color": "#36a64f"}]'};
+                request_send.message(message, paramaters, leaveList, url, function (error, response, msg) {
+                    _session.set(id, 'task', 'leaveAction');
+                    rtm.sendMessage('Do you wish to cancel or reject any leave?', dm.id);
+                });
+            } else {
+                rtm.sendMessage('Oops! This user was not applied any leave.', dm.id);
+            }
+        });
+    } else if (task == 'leaveAction') {
+        if (!_session.get(id, 'sub_task')) {
+            _session.set(id, 'sub_task', message.text);
+        }
+        var _subtask = _session.get(id, 'sub_task');
+        if (_subtask == 'cancel' || _subtask == 'reject') {
+            _session.touch(id);
+            _session.set(id, 'sub_task', 'cancelLeave');
+            rtm.sendMessage('Please enter the serial number of leave which you want to cancel.', dm.id);
+        } else if (_subtask == 'cancelLeave') {
+            var storedList = _session.get(id, 'leaveList');
+            var existingList = storedList.length;
+            var serial = (message.text * 1) - 1;
+            if (serial < (existingList * 1)) {
+                var deleteRecord = storedList[serial];
+                var userId = deleteRecord.user_Id;
+                var date = deleteRecord.from_date;
+                _user.cancelLeave(message.user, userId, date, function (res) {
+                    if (res.error == 0) {
+                        rtm.sendMessage(res.data.message, dm.id);
+                    } else {
+                        rtm.sendMessage('Oops! Some problem occurred. We are looking into it. In the mean time you can use HR system to cancel this leave', dm.id);
+                    }
+                });
+            } else {
+                _session.touch(id);
+                _session.set(id, 'sub_task', 'cancelLeave');
+                rtm.sendMessage('Invalid Serial Number. So please enter again a valid serial number.', dm.id);
+            }
+        } else {
+            _session.touch(id);
+            _session.set(id, 'sub_task', 'leaveAction');
+            rtm.sendMessage("I don't understand" + " " + message.text + ". Do you wish to cancel or reject any leave?", dm.id);
+        }
+    }
+};
