@@ -28,7 +28,7 @@ exports.checkType = function (id, callback) {
 };
 
 exports.userList = function (id, callback) {
-    if (cache[id]['userList']) {
+    if (cache[id]['userList'] != undefined) {
         callback(cache);
     } else {
         request({

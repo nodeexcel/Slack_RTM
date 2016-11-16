@@ -47,7 +47,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     _session.set(setId, 'rtm', rtm);
     var text = message.text;
     if (text == 'exit') {
-        _session.destroy(setId, rtm);
+        _session.destroy(setId, rtm, 'You are successfully exit.');
         return;
     }
     if (!_session.get(setId, 'command')) {
@@ -67,29 +67,34 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             }
             var _subCommand = _session.get(setId, 'sub_command');
             if (_subCommand == 'apply') {
+                _session.touch(setId);
                 leave._apply(message, dm, setId, rtm, user, function (response) {
                 });
             } else if (_subCommand == 'status') {
+                _session.touch(setId);
                 leave_status.fetch(message, dm, setId, rtm, function (req, response, msg) {
                 });
             } else if (_subCommand == 'users' && (_role == 'admin' || _role == 'hr')) {
+                _session.touch(setId);
                 _users.userDetail(message, dm, setId, rtm, function (res) {
                 });
             } else {
+                _session.touch(setId);
                 _session.set(setId, 'sub_command', false);
                 rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from above options.", dm.id);
             }
         } else {
+            _session.touch(setId);
+            rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
             if (!_session.get(setId, 'role')) {
-                _checkUser.checkType('U0FJMLYR1', function (res) {
-                    _session.set(setId, 'role', res['U0FJMLYR1'].role);
+                _checkUser.checkType(message.user, function (res) {
+                    _session.set(setId, 'role', res[message.user].role);
                     _role = _session.get(setId, 'role');
                     if (_role == 'admin' || _role == 'hr') {
                         rtm.sendMessage('These are more options for you: \n 3. users', dm.id);
                     }
                 });
             }
-            rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
         }
     } else if (_command == 'help') {
         _session.touch(setId);

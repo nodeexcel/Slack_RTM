@@ -52,8 +52,12 @@ exports.start = function (id) {
     }, 60 * 1000);
 };
 
-exports.destroy = function (id, rtm) {
+exports.destroy = function (id, rtm, custMsg) {
     session[id] = {};
-    rtm.sendMessage('Oops!! Time over, start again', id);
+    if (custMsg != undefined) {
+        rtm.sendMessage(custMsg, id);
+    } else {
+        rtm.sendMessage('Oops!! Time over, start again', id);
+    }
     delete session[id];
 };
