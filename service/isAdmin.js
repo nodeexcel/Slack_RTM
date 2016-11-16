@@ -2,34 +2,50 @@ var request = require('request');
 require('node-import');
 imports('config/index');
 
+var cache = {};
+
 exports.checkType = function (id, callback) {
-    request({
-        url: config.leaveApply_API_URL, //URL to hit
-        method: 'GET',
-        qs: {"action": 'get_role_from_slackid', "userslack_id": id}
-    }, function (error, response, body) {
-        if (error) {
-            callback(error);
-        } else {
-            var res = JSON.parse(body);
-            callback(res);
-        }
-    });
+    if (cache[id]) {
+        callback(cache);
+    } else {
+        cache[id] = {};
+        request({
+            url: config.leaveApply_API_URL, //URL to hit
+            method: 'GET',
+            qs: {"action": 'get_role_from_slackid', "userslack_id": id}
+        }, function (error, response, body) {
+            if (error) {
+                callback(error);
+            } else {
+                var res = JSON.parse(body);
+//                callback(res);
+                cache[id]['role'] = res.role.toLowerCase();
+                callback(cache);
+            }
+        });
+    }
+
 };
 
 exports.userList = function (id, callback) {
-    request({
-        url: config.leaveApply_API_URL, //URL to hit
-        method: 'GET',
-        qs: {"action": 'get_enable_user', "userslack_id": id}
-    }, function (error, response, body) {
-        if (error) {
-            callback(error);
-        } else {
-            var res = JSON.parse(body);
-            callback(res);
-        }
-    });
+    if (cache[id]['userList']) {
+        callback(cache);
+    } else {
+        request({
+            url: config.leaveApply_API_URL, //URL to hit
+            method: 'GET',
+            qs: {"action": 'get_enable_user', "userslack_id": id}
+        }, function (error, response, body) {
+            if (error) {
+                callback(error);
+            } else {
+                var res = JSON.parse(body);
+//                callback(res);
+                cache[id]['userList'] = res;
+                callback(cache);
+            }
+        });
+    }
 };
 
 exports.getUserLeave = function (id, user_id, callback) {

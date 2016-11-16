@@ -30,7 +30,7 @@ exports.touch = function (id) {
         session[id].timeout = setTimeout(function () {
             var rtm = exports.get(id, 'rtm');
             exports.destroy(id, rtm);
-        }, 500 * 1000);
+        }, 60 * 1000);
     } else {
     }
 };
@@ -49,11 +49,11 @@ exports.start = function (id) {
     session[id].timeout = setTimeout(function () {
         var rtm = exports.get(id, 'rtm');
         exports.destroy(id, rtm);
-    }, 500 * 1000);
+    }, 60 * 1000);
 };
 
 exports.destroy = function (id, rtm) {
     session[id] = {};
-    rtm.sendMessage('Oops!! Session destroyed! So you have to apply once again!!', id);
+    rtm.sendMessage('Oops!! Time over, start again', id);
     delete session[id];
 };

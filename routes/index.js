@@ -40,33 +40,27 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     if (dm == undefined) {
         return;
     }
-
     var setId = dm.id;
     if (!_session.exists(setId)) {
         _session.start(setId);
     }
     _session.set(setId, 'rtm', rtm);
     var text = message.text;
+    if (text == 'exit') {
+        _session.destroy(setId, rtm);
+        return;
+    }
     if (!_session.get(setId, 'command')) {
         _session.set(setId, 'command', message.text);
         text = false;
     }
-
     var _command = _session.get(setId, 'command');
     if (_command == 'hello' || _command == 'hi' || _command == 'helo' || _command == 'hey') {
         _session.touch(setId);
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
     } else if (_command == 'leave') {
         _session.touch(setId);
-        if (!_session.get(setId, 'role')) {
-            _checkUser.checkType(message.user, function (res) {
-                _session.set(setId, 'role', res.role.toLowerCase());
-                var _role = _session.get(setId, 'role');
-                if (_role == 'admin' || _role == 'hr') {
-                    rtm.sendMessage('These are more options for you: \n 3. users', dm.id);
-                }
-            });
-        }
+        var _role = _session.get(setId, 'role');
         if (text) {
             if (!_session.get(setId, 'sub_command')) {
                 _session.set(setId, 'sub_command', text);
@@ -76,9 +70,9 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 leave._apply(message, dm, setId, rtm, user, function (response) {
                 });
             } else if (_subCommand == 'status') {
-                leave_status.fetch(message, dm, rtm, function (req, response, msg) {
+                leave_status.fetch(message, dm, setId, rtm, function (req, response, msg) {
                 });
-            } else if (_subCommand == 'users') {
+            } else if (_subCommand == 'users' && (_role == 'admin' || _role == 'hr')) {
                 _users.userDetail(message, dm, setId, rtm, function (res) {
                 });
             } else {
@@ -86,6 +80,15 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from above options.", dm.id);
             }
         } else {
+            if (!_session.get(setId, 'role')) {
+                _checkUser.checkType('U0FJMLYR1', function (res) {
+                    _session.set(setId, 'role', res['U0FJMLYR1'].role);
+                    _role = _session.get(setId, 'role');
+                    if (_role == 'admin' || _role == 'hr') {
+                        rtm.sendMessage('These are more options for you: \n 3. users', dm.id);
+                    }
+                });
+            }
             rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
         }
     } else if (_command == 'help') {
