@@ -5,6 +5,7 @@ var _user = require('../isAdmin');
 var request_send = require('../slack/send');
 var moment = require('moment');
 var async = require("async");
+
 exports.userDetail = function (message, dm, id, rtm, callback) {
     var usersList = '', leaveListApprove = '', leaveListCancel = '', leaveListPending = '';
     var validLeaves = [];
@@ -12,8 +13,9 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
     if (!task) {
         rtm.sendMessage('Please Wait..', dm.id);
         _session.touch(id);
-        _user.userList(message.user, function (res) {
-            var savedUserList = res[message.user].userList;
+        _user.userList('U0FJMLYR1', function (res) {
+            _session.touch(id);
+            var savedUserList = res['U0FJMLYR1'].userList;
             if (savedUserList.error == 0) {
                 for (i = 0; i < savedUserList.data.length; i++) {
                     var row = savedUserList.data[i];
@@ -36,8 +38,8 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
     } else if (task == 'setUserId') {
         _session.touch(id);
         rtm.sendMessage('Please Wait..', dm.id);
-        _user.getUserLeave(message.user, message.text, function (res) {
-//            var savedLeaveList = res[message.user].leaveList;
+        _user.getUserLeave('U0FJMLYR1', message.text, function (res) {
+//            var savedLeaveList = res['U0FJMLYR1'].leaveList;
             var savedLeaveList = res;
             _session.touch(id);
             var month = moment().format('M');
@@ -71,37 +73,51 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                         leaveListCancel = leaveListCancel + (i + 1) + ") " + moment(fromDate, 'YYYY-MM-DD').format('Do MMM YYYY') + " to " + moment(toDate, 'YYYY-MM-DD').format('Do MMM YYYY') + ' Reason: ' + reason + ' Days# ' + days + '\n';
                     }
                 }
+                _session.touch(id);
                 _session.set(id, 'leaveList', validLeaves);
                 url = config.url_chat;
                 async.parallel([
                     function (callback) {
                         _session.touch(id);
-                        var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Approved leaves for ' + userId + '", "text":"' + leaveListApprove + '", "fallback": "Message Send to Employee","color": "#36a64f"}]'};
-                        request_send.message(message, paramaters, leaveListApprove, url, function (error, response, msg) {
-                            _session.set(id, 'task', 'leaveAction');
+                        if (leaveListApprove != '') {
+                            var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Approved leaves for ' + userId + '", "text":"' + leaveListApprove + '", "fallback": "Message Send to Employee","color": "#36a64f"}]'};
+                            request_send.message(message, paramaters, leaveListApprove, url, function (error, response, msg) {
+                                _session.set(id, 'task', 'leaveAction');
+                                callback();
+                            });
+                        } else {
                             callback();
-                        });
+                        }
                     },
                     function (callback) {
                         _session.touch(id);
-                        var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Pending leaves for ' + userId + '", "text":"' + leaveListPending + '", "fallback": "Message Send to Employee","color": "#AF2111"}]'};
-                        request_send.message(message, paramaters, leaveListPending, url, function (error, response, msg) {
-                            _session.set(id, 'task', 'leaveAction');
+                        if (leaveListPending != '') {
+                            var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Pending leaves for ' + userId + '", "text":"' + leaveListPending + '", "fallback": "Message Send to Employee","color": "#AF2111"}]'};
+                            request_send.message(message, paramaters, leaveListPending, url, function (error, response, msg) {
+                                _session.set(id, 'task', 'leaveAction');
+                                callback();
+                            });
+                        } else {
                             callback();
-                        });
+                        }
                     }, function (callback) {
                         _session.touch(id);
-                        var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Cancelled leaves for ' + userId + '", "text":"' + leaveListCancel + '", "fallback": "Message Send to Employee","color": "#F2801D"}]'};
-                        request_send.message(message, paramaters, leaveListCancel, url, function (error, response, msg) {
-                            _session.set(id, 'task', 'leaveAction');
+                        if (leaveListCancel != '') {
+                            var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Cancelled leaves for ' + userId + '", "text":"' + leaveListCancel + '", "fallback": "Message Send to Employee","color": "#F2801D"}]'};
+                            request_send.message(message, paramaters, leaveListCancel, url, function (error, response, msg) {
+                                _session.set(id, 'task', 'leaveAction');
+                                callback();
+                            });
+                        } else {
                             callback();
-                        });
+                        }
                     }
-                ], function (err, results) {
+                ], function (err) {
                     if (err) {
                         rtm.sendMessage(err, dm.id);
                     } else {
-                        rtm.sendMessage('These are your options: \n 1. cancel \n 2. reject', dm.id);
+                        _session.touch(id);
+                        rtm.sendMessage('These are your options: \n 1. cancel (Cancel leave using this option) \n 2. reject (Reject leave using this option)', dm.id);
                     }
                 });
 
@@ -129,8 +145,9 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 var deleteRecord = storedList[serial];
                 var userId = deleteRecord.user_Id;
                 var date = deleteRecord.from_date;
-                _user.cancelLeave(message.user, userId, date, function (res) {
+                _user.cancelLeave('U0FJMLYR1', userId, date, function (res) {
                     if (res.error == 0) {
+                        _session.touch(id);
                         rtm.sendMessage(res.data.message, dm.id);
                     } else {
                         rtm.sendMessage('Oops! Some problem occurred. We are looking into it. In the mean time you can use HR system to cancel this leave', dm.id);

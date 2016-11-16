@@ -2,12 +2,11 @@ require('node-import');
 imports('config/index');
 
 var express = require('express');
-var moment = require('moment');
 var router = express.Router();
-var leave_status = require('../service/leave/status');
+var _leaveStatus = require('../service/leave/status');
 var leave = require('../service/leave/apply');
 var _session = require('../service/session');
-var cancel_leave = require('../service/leave/cancel');
+var _cancelLeave = require('../service/leave/cancel');
 var _checkUser = require('../service/isAdmin');
 var _users = require('../service/leave/users');
 var RtmClient = require('@slack/client').RtmClient;
@@ -47,7 +46,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     _session.set(setId, 'rtm', rtm);
     var text = message.text;
     if (text == 'exit') {
-        _session.destroy(setId, rtm, 'You are successfully exit.');
+        _session.destroy(setId, rtm, 'Goodbye!');
         return;
     }
     if (!_session.get(setId, 'command')) {
@@ -55,9 +54,11 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         text = false;
     }
     var _command = _session.get(setId, 'command');
-    if (_command == 'hello' || _command == 'hi' || _command == 'helo' || _command == 'hey') {
+    if (_command == 'hello' || _command == 'hi' || _command == 'helo' || _command == 'hey' || _command == 'help') {
         _session.touch(setId);
+        _session.set(setId, 'command', false);
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
+        rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
     } else if (_command == 'leave') {
         _session.touch(setId);
         var _role = _session.get(setId, 'role');
@@ -66,13 +67,19 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 _session.set(setId, 'sub_command', text);
             }
             var _subCommand = _session.get(setId, 'sub_command');
+            console.log(_subCommand);
             if (_subCommand == 'apply') {
                 _session.touch(setId);
                 leave._apply(message, dm, setId, rtm, user, function (response) {
                 });
             } else if (_subCommand == 'status') {
                 _session.touch(setId);
-                leave_status.fetch(message, dm, setId, rtm, function (req, response, msg) {
+                _leaveStatus.fetch(message, dm, setId, rtm, function (req, response, msg) {
+                });
+            } else if (_subCommand == 'cancel') {
+                console.log('cancel');
+                _session.touch(setId);
+                _cancelLeave.cancel(_role, message, dm, setId, rtm, user, function (req, response, msg) {
                 });
             } else if (_subCommand == 'users' && (_role == 'admin' || _role == 'hr')) {
                 _session.touch(setId);
@@ -85,24 +92,20 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             }
         } else {
             _session.touch(setId);
-            rtm.sendMessage('These are the different options for you: \n 1. apply \n 2. status', dm.id);
+            rtm.sendMessage('These are the different options for you: \n 1. apply (Apply leave using this option) \n 2. status (Check the status of your leaves using this option) \n 3. cancel (Cancel your leaves using this option)', dm.id);
             if (!_session.get(setId, 'role')) {
-                _checkUser.checkType(message.user, function (res) {
-                    _session.set(setId, 'role', res[message.user].role);
+                _session.touch(setId);
+                _checkUser.checkType('U0FJMLYR1', function (res) {
+                    _session.touch(setId);
+                    _session.set(setId, 'role', res['U0FJMLYR1'].role);
                     _role = _session.get(setId, 'role');
                     if (_role == 'admin' || _role == 'hr') {
-                        rtm.sendMessage('These are more options for you: \n 3. users', dm.id);
+                        _session.touch(setId);
+                        rtm.sendMessage('Since your an ' + _role + ', there more options for you: \n 4. users (Reject, cancel or see status of users using this option)', dm.id);
                     }
                 });
             }
         }
-    } else if (_command == 'help') {
-        _session.touch(setId);
-        rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
-    } else if (_command == 'cancel') {
-        _session.touch(setId);
-        cancel_leave.cancel(message, dm, setId, rtm, user, function (req, response, msg) {
-        });
     } else {
         _session.touch(setId);
         _session.set(setId, 'command', false);
