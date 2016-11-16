@@ -11,8 +11,8 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
     var task = _session.get(id, 'task');
     if (!task) {
         rtm.sendMessage('Please Wait..', dm.id);
-        _user.userList('U0FJMLYR1', function (res) {
-            var savedUserList = res['U0FJMLYR1'].userList;
+        _user.userList(message.user, function (res) {
+            var savedUserList = res[message.user].userList;
             _session.touch(id);
             if (savedUserList.error == 0) {
                 for (i = 0; i < savedUserList.data.length; i++) {
@@ -35,8 +35,8 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
     } else if (task == 'setUserId') {
         _session.touch(id);
         rtm.sendMessage('Please Wait..', dm.id);
-        _user.getUserLeave('U0FJMLYR1', message.text, function (res) {
-//            var savedLeaveList = res['U0FJMLYR1'].leaveList;
+        _user.getUserLeave(message.user, message.text, function (res) {
+//            var savedLeaveList = res[message.user].leaveList;
             var savedLeaveList = res;
             _session.touch(id);
             var month = moment().format('M');
@@ -117,7 +117,7 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 var deleteRecord = storedList[serial];
                 var userId = deleteRecord.user_Id;
                 var date = deleteRecord.from_date;
-                _user.cancelLeave('U0FJMLYR1', userId, date, function (res) {
+                _user.cancelLeave(message.user, userId, date, function (res) {
                     if (res.error == 0) {
                         rtm.sendMessage(res.data.message, dm.id);
                     } else {
