@@ -118,7 +118,7 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
         if (_subtask == 'cancel' || _subtask == 'reject') {
             _session.touch(id);
             _session.set(id, 'sub_task', 'cancelLeave');
-            rtm.sendMessage('Please enter the serial number of leave which you want to cancel.', dm.id);
+            rtm.sendMessage('Please enter the serial number of leave which you want to ' + _subtask + '.', dm.id);
         } else if (_subtask == 'cancelLeave') {
             _session.touch(id);
             var storedList = _session.get(id, 'leaveList');
