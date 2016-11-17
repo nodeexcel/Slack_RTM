@@ -13,9 +13,9 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
     if (!task) {
         rtm.sendMessage('Please Wait..', dm.id);
         _session.touch(id);
-        _user.userList('U0FJMLYR1', function (res) {
+        _user.userList(message.user, function (res) {
             _session.touch(id);
-            var savedUserList = res['U0FJMLYR1'].userList;
+            var savedUserList = res[message.user].userList;
             if (savedUserList.error == 0) {
                 for (i = 0; i < savedUserList.data.length; i++) {
                     var row = savedUserList.data[i];
@@ -38,7 +38,7 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
     } else if (task == 'setUserId') {
         _session.touch(id);
         rtm.sendMessage('Please Wait..', dm.id);
-        _user.getUserLeave('U0FJMLYR1', message.text, function (res) {
+        _user.getUserLeave(message.user, message.text, function (res) {
 //            var savedLeaveList = res['U0FJMLYR1'].leaveList;
             var savedLeaveList = res;
             _session.touch(id);
@@ -145,9 +145,11 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 var deleteRecord = storedList[serial];
                 var userId = deleteRecord.user_Id;
                 var date = deleteRecord.from_date;
-                _user.cancelLeave('U0FJMLYR1', userId, date, function (res) {
+                _user.cancelLeave(message.user, userId, date, function (res) {
                     if (res.error == 0) {
                         _session.touch(id);
+                        _session.set(id, 'sub_task', false);
+                        _session.set(id, 'task', false);
                         rtm.sendMessage(res.data.message, dm.id);
                     } else {
                         rtm.sendMessage('Oops! Some problem occurred. We are looking into it. In the mean time you can use HR system to cancel this leave', dm.id);
@@ -155,12 +157,11 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 });
             } else {
                 _session.touch(id);
-                _session.set(id, 'sub_task', 'cancelLeave');
+//                _session.set(id, 'sub_task', 'cancelLeave');
                 rtm.sendMessage('Invalid Serial Number. So please enter again a valid serial number.', dm.id);
             }
         } else {
             _session.touch(id);
-            _session.set(id, 'sub_task', 'leaveAction');
             rtm.sendMessage("I don't understand" + " " + message.text + ". Do you wish to cancel or reject any leave?", dm.id);
         }
     }

@@ -48,13 +48,11 @@ exports._apply = function (message, dm, id, rtm, user, callback) {
             _session.touch(id);
             var myFromDate = moment(getFrom, 'DD-MM-YYYY').format('YYYY-MM-DD');
             var myToDate = moment(getTo, 'DD-MM-YYYY').format('YYYY-MM-DD');
-            leave_.leaveApply(id, myFromDate, myToDate, number_of_day, reason, function (status) {
+            leave_.leaveApply(message.user, myFromDate, myToDate, number_of_day, reason, function (status) {
                 if (status == 0) {
-                    _session.destroy(id, rtm);
                     rtm.sendMessage('Your leave has been submitted approval!', dm.id);
                     callback(0);
                 } else {
-                    _session.destroy(id, rtm);
                     rtm.sendMessage('Oops! Some problem occurred. We are looking into it. In the mean time you can use HR system to apply your leave', dm.id);
                     callback(0);
                 }

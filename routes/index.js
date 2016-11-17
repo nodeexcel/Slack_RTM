@@ -67,7 +67,6 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 _session.set(setId, 'sub_command', text);
             }
             var _subCommand = _session.get(setId, 'sub_command');
-            console.log(_subCommand);
             if (_subCommand == 'apply') {
                 _session.touch(setId);
                 leave._apply(message, dm, setId, rtm, user, function (response) {
@@ -77,7 +76,6 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 _leaveStatus.fetch(message, dm, setId, rtm, function (req, response, msg) {
                 });
             } else if (_subCommand == 'cancel') {
-                console.log('cancel');
                 _session.touch(setId);
                 _cancelLeave.cancel(_role, message, dm, setId, rtm, user, function (req, response, msg) {
                 });
@@ -95,9 +93,9 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             rtm.sendMessage('These are the different options for you: \n 1. apply (Apply leave using this option) \n 2. status (Check the status of your leaves using this option) \n 3. cancel (Cancel your leaves using this option)', dm.id);
             if (!_session.get(setId, 'role')) {
                 _session.touch(setId);
-                _checkUser.checkType('U0FJMLYR1', function (res) {
+                _checkUser.checkType(message.user, function (res) {
                     _session.touch(setId);
-                    _session.set(setId, 'role', res['U0FJMLYR1'].role);
+                    _session.set(setId, 'role', res[message.user].role);
                     _role = _session.get(setId, 'role');
                     if (_role == 'admin' || _role == 'hr') {
                         _session.touch(setId);

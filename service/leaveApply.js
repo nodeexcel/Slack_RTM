@@ -13,6 +13,7 @@ exports.leaveApply = function (id, from, to, number_of_day, reason, callback) {
             callback(error);
         } else {
             var p = JSON.parse(body);
+            console.log(p);
             callback(p.error);
         }
     });

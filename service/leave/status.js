@@ -15,23 +15,23 @@ exports.fetch = function (message, dm, setId, rtm) {
         qs: {"action": 'get_my_leaves', "userslack_id": message.user}
     }, function (error, response, body) {
         if (error) {
-            console.log(error);
+            rtm.sendMessage('Oops! Some error occurred. We are looking into it. In the mean time you can check your leave status of HR system.', dm.id);
         } else {
             if (body == '') {
                 rtm.sendMessage("You don't have any upcoming leaves", dm.id);
             } else {
-                var data1 = JSON.parse(body);
-                if (data1.data && data1.data.leaves) {
-                    for (i = 0; i < data1.data.leaves.length; i++) {
-                        var leave = data1.data.leaves[i].from_date;
-                        var leave1 = data1.data.leaves[i].to_date;
-                        var leave2 = data1.data.leaves[i].status;
-                        if (data1.data.leaves[i].status == "Approved") {
-                            approved_message = approved_message + 'Leave from: ' + data1.data.leaves[i].from_date + ' to: ' + data1.data.leaves[i].to_date + '\n';
-                        } else if (data1.data.leaves[i].status == "Pending") {
-                            pending_message = pending_message + 'Leave from: ' + data1.data.leaves[i].from_date + ' to: ' + data1.data.leaves[i].to_date + '\n';
-                        } else if (data1.data.leaves[i].status == "Cancelled Request") {
-                            cancelled_message = cancelled_message + 'Leave from: ' + data1.data.leaves[i].from_date + ' to: ' + data1.data.leaves[i].to_date + '\n';
+                var allData = JSON.parse(body);
+                if (allData.data && allData.data.leaves) {
+                    for (i = 0; i < allData.data.leaves.length; i++) {
+                        var leaveFrom = allData.data.leaves[i].from_date;
+                        var leaveTo = allData.data.leaves[i].to_date;
+                        var leaveStatus = allData.data.leaves[i].status;
+                        if (leaveStatus == "Approved") {
+                            approved_message = approved_message + 'Leave from: ' + leaveFrom + ' to: ' + leaveTo + '\n';
+                        } else if (leaveStatus == "Pending") {
+                            pending_message = pending_message + 'Leave from: ' + leaveFrom + ' to: ' + leaveTo + '\n';
+                        } else if (leaveStatus == "Cancelled Request") {
+                            cancelled_message = cancelled_message + 'Leave from: ' + leaveFrom + ' to: ' + leaveTo + '\n';
                         }
                     }
                     if (approved_message != '') {
