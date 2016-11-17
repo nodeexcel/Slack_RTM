@@ -39,9 +39,9 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
         rtm.sendMessage('Please Wait..', dm.id);
         _user.userList(message.user, function (result) {
             var find = false;
-            var peeyush = result[message.user].userList;
-            for (var a = 0; a < peeyush.data.length; a++) {
-                var row = peeyush.data[a];
+            var allUserList = result[message.user].userList;
+            for (var a = 0; a < allUserList.data.length; a++) {
+                var row = allUserList.data[a];
                 if (row.user_Id == message.text) {
                     find = true;
                 }
@@ -128,7 +128,7 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                                 rtm.sendMessage(err, dm.id);
                             } else {
                                 _session.touch(id);
-                                rtm.sendMessage('These are your options: \n 1. cancel (Cancel leave using this option) \n 2. reject (Reject leave using this option)', dm.id);
+                                rtm.sendMessage('These are your options: \n 1. cancel (Cancel leave using this option) \n 2. reject (Reject leave using this option) \n 3. approve (Approve leave using this option)', dm.id);
                             }
                         });
                     } else {
@@ -172,6 +172,33 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
             } else {
                 _session.touch(id);
 //                _session.set(id, 'sub_task', 'cancelLeave');
+                rtm.sendMessage('Invalid Serial Number. So please enter again a valid serial number.', dm.id);
+            }
+        } else if (_subtask == 'approve') {
+            _session.touch(id);
+            _session.set(id, 'sub_task', 'approveLeave');
+            rtm.sendMessage('Please enter the serial number of leave which you want to ' + _subtask + '.', dm.id);
+        } else if (_subtask == 'approveLeave') {
+            _session.touch(id);
+            var storedList = _session.get(id, 'leaveList');
+            var existingList = storedList.length;
+            var serial = (message.text * 1) - 1;
+            if (serial < (existingList * 1)) {
+                _session.touch(id);
+                var deleteRecord = storedList[serial];
+                var leaveId = deleteRecord.id;
+                _user.approveLeave(message.user, leaveId, function (res) {
+                    if (res.error == 0) {
+                        _session.touch(id);
+                        rtm.sendMessage(res.message, dm.id);
+                        _session.destroy(id, rtm, 'You have completed your task successfully!!');
+                        callback(0);
+                    } else {
+                        rtm.sendMessage('Oops! Some problem occurred. We are looking into it. In the mean time you can use HR system to approve this leave', dm.id);
+                    }
+                });
+            } else {
+                _session.touch(id);
                 rtm.sendMessage('Invalid Serial Number. So please enter again a valid serial number.', dm.id);
             }
         } else {

@@ -77,3 +77,18 @@ exports.cancelLeave = function (id, user_id, date, callback) {
         }
     });
 };
+
+exports.approveLeave = function (id, leaveId, callback) {
+    request({
+        url: config.leaveApply_API_URL, //URL to hit
+        method: 'GET',
+        qs: {"action": 'approve_decline_leave_of_user', "userslack_id": id, "leave_id": leaveId, "leave_status": 'Approved'}
+    }, function (error, response, body) {
+        if (error) {
+            callback(error);
+        } else {
+            var res = JSON.parse(body);
+            callback(res);
+        }
+    });
+};
