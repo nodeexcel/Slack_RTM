@@ -8,7 +8,7 @@ var moment = require('moment');
 exports.cancel = function (role, message, dm, id, rtm, user, callback) {
     var _task = _session.get(id, 'task');
     if (!_task) {
-        rtm.sendMessage('Please wait..', dm.id);
+//        rtm.sendMessage('Please wait..', dm.id);
         var pending_message = '';
         request({
             url: config.leaveApply_API_URL, //URL to hit
@@ -45,6 +45,10 @@ exports.cancel = function (role, message, dm, id, rtm, user, callback) {
                                     rtm.sendMessage("invalid information", dm.id);
                                 }
                             });
+                        } else {
+                            rtm.sendMessage("You don't have any pending leave", dm.id);
+                            _session.destroy(id, rtm, 'You have completed your task successfully!!');
+                            callback(0);
                         }
                     } else {
                         rtm.sendMessage('Oops! Some error occurred. We are looking into it. In the mean time you can check your leave status of HR system.', dm.id);
@@ -77,17 +81,17 @@ exports.cancel = function (role, message, dm, id, rtm, user, callback) {
                 paramaters = {"action": 'cancel_applied_leave_admin', "userslack_id": message.user, "user_id": userId, "date": myFromDate};
                 request_send.cancel(message, paramaters, url, function (response, error, msg) {
                     var resp = JSON.parse(response);
-                    if (resp.error == 1) {
+                    if (resp.error == 0) {
                         _session.set(id, 'task', false);
                         _session.set(id, 'sub_command', false);
-                        rtm.sendMessage(resp.data.message, dm.id);
-//                        _session.destroy(id, rtm, resp.data.message);
+                        rtm.sendMessage('Your applied leave for ' + getFrom + ' has been cancelled.', dm.id);
+                        _session.destroy(id, rtm, 'You have completed your task successfully!!');
                         callback(0);
-                    } else if (resp.error == 0) {
+                    } else if (resp.error == 1) {
                         _session.set(id, 'task', false);
                         _session.set(id, 'sub_command', false);
                         rtm.sendMessage(resp.data.message, dm.id);
-//                        _session.destroy(id, rtm, resp.data.message);
+                        _session.destroy(id, rtm, 'You have not completed your task successfully!!');
                         callback(0);
                     }
                 });
@@ -109,17 +113,17 @@ exports.cancel = function (role, message, dm, id, rtm, user, callback) {
                     paramaters = {"action": 'cancel_applied_leave', "userslack_id": message.user, "date": myFromDate};
                     request_send.cancel(message, paramaters, url, function (response, error, msg) {
                         var resp = JSON.parse(response);
-                        if (resp.error == 1) {
+                        if (resp.error == 0) {
                             _session.set(id, 'task', false);
                             _session.set(id, 'sub_command', false);
-                            rtm.sendMessage(resp.data.message, dm.id);
-//                            _session.destroy(id, rtm, resp.data.message);
+                            rtm.sendMessage('Leave applied has been cancelled.', dm.id);
+                            _session.destroy(id, rtm, 'You have completed your task successfully!!');
                             callback(0);
-                        } else if (resp.error == 0) {
+                        } else if (resp.error == 1) {
                             _session.set(id, 'task', false);
                             _session.set(id, 'sub_command', false);
                             rtm.sendMessage(resp.data.message, dm.id);
-//                            _session.destroy(id, rtm, resp.data.message);
+                            _session.destroy(id, rtm, 'You have not completed your task successfully!!');
                             callback(0);
                         }
                     });

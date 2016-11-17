@@ -72,10 +72,12 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 leave._apply(message, dm, setId, rtm, user, function (response) {
                 });
             } else if (_subCommand == 'status') {
+                rtm.sendMessage('Please Wait..', dm.id);
                 _session.touch(setId);
-                _leaveStatus.fetch(message, dm, setId, rtm, function (req, response, msg) {
+                _leaveStatus.getLeaveStatus(message, dm, setId, rtm, function (req, response, msg) {
                 });
             } else if (_subCommand == 'cancel') {
+                rtm.sendMessage('Please Wait..', dm.id);
                 _session.touch(setId);
                 _cancelLeave.cancel(_role, message, dm, setId, rtm, user, function (req, response, msg) {
                 });

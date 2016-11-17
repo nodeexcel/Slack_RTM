@@ -1,14 +1,13 @@
 var request = require('request');
 var request_send = require('../slack/send');
 var _session = require('../session');
+var async = require("async");
 
 require('node-import');
 imports('config/index');
 
-exports.fetch = function (message, dm, setId, rtm) {
-    var approved_message = '';
-    var pending_message = '';
-    var cancelled_message = '';
+exports.getLeaveStatus = function (message, dm, setId, rtm, callback) {
+    var approved_message = '', pending_message = '', cancelled_message = '';
     request({
         url: config.url, //URL to hit
         method: 'POST',
@@ -21,6 +20,7 @@ exports.fetch = function (message, dm, setId, rtm) {
                 rtm.sendMessage("You don't have any upcoming leaves", dm.id);
             } else {
                 var allData = JSON.parse(body);
+                url = config.url_chat;
                 if (allData.data && allData.data.leaves) {
                     for (i = 0; i < allData.data.leaves.length; i++) {
                         var leaveFrom = allData.data.leaves[i].from_date;
@@ -34,25 +34,49 @@ exports.fetch = function (message, dm, setId, rtm) {
                             cancelled_message = cancelled_message + 'Leave from: ' + leaveFrom + ' to: ' + leaveTo + '\n';
                         }
                     }
-                    if (approved_message != '') {
-                        url = config.url_chat;
-                        var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Status : Approved", "text":"' + approved_message + '", "fallback": "Message Send to Employee","color": "#36a64f"}]'};
-                        request_send.message(message, paramaters, approved_message, url, function (error, response, msg) {
-                        });
-                    }
-                    if (pending_message != '') {
-                        url = config.url_chat;
-                        var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Status : Pending", "text":"' + pending_message + '", "fallback": "Message Send to Employee","color": "#AF2111"}]'};
-                        request_send.message(message, paramaters, pending_message, url, function (error, response, msg) {
-                        });
-                    }
-                    if (cancelled_message != '') {
-                        url = config.url_chat;
-                        var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Status : Cancelled", "text":"' + cancelled_message + '", "fallback": "Message Send to Employee","color": "#F2801D"}]'};
-                        request_send.message(message, paramaters, cancelled_message, url, function (error, response, msg) {
-                        });
-                    }
-                    _session.set(setId, 'sub_command', false);
+                    async.parallel([
+                        function (callback) {
+                            _session.touch(setId);
+                            if (approved_message != '') {
+                                var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Status : Approved", "text":"' + approved_message + '", "fallback": "Message Send to Employee","color": "#36a64f"}]'};
+                                request_send.message(message, paramaters, approved_message, url, function (error, response, msg) {
+                                    callback();
+                                });
+                            } else {
+                                callback();
+                            }
+                        },
+                        function (callback) {
+                            _session.touch(setId);
+                            if (pending_message != '') {
+                                var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Status : Pending", "text":"' + pending_message + '", "fallback": "Message Send to Employee","color": "#AF2111"}]'};
+                                request_send.message(message, paramaters, pending_message, url, function (error, response, msg) {
+                                    callback();
+                                });
+                            } else {
+                                callback();
+                            }
+                        }, function (callback) {
+                            _session.touch(setId);
+                            if (cancelled_message != '') {
+                                var paramaters = {"token": process.env.SLACK_API_TOKEN || '', "channel": message.channel, "attachments": '[{ "pretext": "Status : Cancelled", "text":"' + cancelled_message + '", "fallback": "Message Send to Employee","color": "#F2801D"}]'};
+                                request_send.message(message, paramaters, cancelled_message, url, function (error, response, msg) {
+                                    callback();
+                                });
+                            } else {
+                                callback();
+                            }
+                        }
+                    ], function (err) {
+                        if (err) {
+                            rtm.sendMessage(err, dm.id);
+                        } else {
+                            _session.touch(setId);
+                            _session.set(setId, 'sub_command', false);
+                            _session.destroy(setId, rtm, 'You have completed your task successfully!!');
+                            callback(0);
+                        }
+                    });
                 } else {
                     rtm.sendMessage('Oops! Some error occurred. We are looking into it. In the mean time you can check your leave status of HR system.', dm.id);
                 }

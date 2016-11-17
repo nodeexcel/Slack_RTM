@@ -51,9 +51,11 @@ exports._apply = function (message, dm, id, rtm, user, callback) {
             leave_.leaveApply(message.user, myFromDate, myToDate, number_of_day, reason, function (status) {
                 if (status == 0) {
                     rtm.sendMessage('Your leave has been submitted approval!', dm.id);
+                    _session.destroy(id, rtm, 'You have completed your task successfully!!');
                     callback(0);
                 } else {
                     rtm.sendMessage('Oops! Some problem occurred. We are looking into it. In the mean time you can use HR system to apply your leave', dm.id);
+                    _session.destroy(id, rtm, 'You have not completed your task successfully!!');
                     callback(0);
                 }
             });

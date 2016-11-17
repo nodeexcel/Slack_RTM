@@ -29,7 +29,7 @@ exports.touch = function (id) {
         clearTimeout(session[id].timeout);
         session[id].timeout = setTimeout(function () {
             var rtm = exports.get(id, 'rtm');
-            exports.destroy(id, rtm);
+            exports.destroy(id, rtm, false);
         }, 60 * 1000);
     } else {
     }
@@ -48,16 +48,15 @@ exports.start = function (id) {
     session[id].start = time;
     session[id].timeout = setTimeout(function () {
         var rtm = exports.get(id, 'rtm');
-        exports.destroy(id, rtm);
+        exports.destroy(id, rtm, false);
     }, 60 * 1000);
 };
 
 exports.destroy = function (id, rtm, custMsg) {
     session[id] = {};
-    if (custMsg != undefined) {
-        rtm.sendMessage(custMsg, id);
-    } else {
-        rtm.sendMessage('Oops!! Time over, start again', id);
+    if (!custMsg) {
+        custMsg = 'Oops!! Time over, start again';
     }
+    rtm.sendMessage(custMsg, id);
     delete session[id];
 };
