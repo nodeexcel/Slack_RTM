@@ -91,7 +91,7 @@ exports.cancel = function (role, message, dm, id, rtm, user, callback) {
                         _session.set(id, 'task', false);
                         _session.set(id, 'sub_command', false);
                         rtm.sendMessage(resp.data.message, dm.id);
-                        _session.destroy(id, rtm, 'You have not completed your task successfully!!');
+                        _session.destroy(id, rtm, "You have not completed your task successfully!! Please use 'help' to see all options.");
                         callback(0);
                     }
                 });

@@ -123,21 +123,39 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                                     callback();
                                 }
                             }
-                        ], function (err) {
+                        ], function (err, record) {
                             if (err) {
                                 rtm.sendMessage(err, dm.id);
                             } else {
                                 _session.touch(id);
-                                rtm.sendMessage('These are your options: \n 1. cancel (Cancel leave using this option) \n 2. reject (Reject leave using this option) \n 3. approve (Approve leave using this option)', dm.id);
+                                if (leaveListApprove != '' || leaveListCancel != '' || leaveListPending != '') {
+                                    rtm.sendMessage('These are your options: \n 1. cancel (Cancel leave using this option) \n 2. reject (Reject leave using this option) \n 3. approve (Approve leave using this option)', dm.id);
+                                } else {
+                                    _session.destroy(id, rtm, 'There is no applied leave for you!!');
+                                }
+//                                rtm.sendMessage('These are your options: \n 1. cancel (Cancel leave using this option) \n 2. reject (Reject leave using this option) \n 3. approve (Approve leave using this option)', dm.id);
                             }
                         });
                     } else {
-                        rtm.sendMessage('Oops! This user was not applied any leave.', dm.id);
+                        rtm.sendMessage("Oops! This user was not applied any leave. Please use 'help' to see all options.", dm.id);
                     }
                 });
             }
         });
     } else if (task == 'leaveAction') {
+        var storedList = _session.get(id, 'leaveList');
+        var existingList = storedList.length;
+        var approve = 0, cancel = 0, pending = 0;
+        for (var a = 0; a < existingList; a++) {
+            var row = storedList[a];
+            if (row.status == 'Approved') {
+                approve++;
+            } else if (row.status == 'Cancelled Request') {
+                cancel++;
+            } else if (row.status == 'Pending') {
+                pending++;
+            }
+        }
         _session.touch(id);
         if (!_session.get(id, 'sub_task')) {
             _session.set(id, 'sub_task', message.text);
@@ -149,8 +167,8 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
             rtm.sendMessage('Please enter the serial number of leave which you want to ' + _subtask + '.', dm.id);
         } else if (_subtask == 'cancelLeave') {
             _session.touch(id);
-            var storedList = _session.get(id, 'leaveList');
-            var existingList = storedList.length;
+//            var storedList = _session.get(id, 'leaveList');
+//            var existingList = storedList.length;
             var serial = (message.text * 1) - 1;
             if (serial < (existingList * 1)) {
                 _session.touch(id);
@@ -175,13 +193,17 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 rtm.sendMessage('Invalid Serial Number. So please enter again a valid serial number.', dm.id);
             }
         } else if (_subtask == 'approve') {
-            _session.touch(id);
-            _session.set(id, 'sub_task', 'approveLeave');
-            rtm.sendMessage('Please enter the serial number of leave which you want to ' + _subtask + '.', dm.id);
+            if (pending > 0) {
+                _session.touch(id);
+                _session.set(id, 'sub_task', 'approveLeave');
+                rtm.sendMessage('Please enter the serial number of leave which you want to ' + _subtask + '.', dm.id);
+            } else {
+                _session.destroy(id, rtm, "You have not any pending leave!! Please use 'help' to see all options.");
+            }
         } else if (_subtask == 'approveLeave') {
             _session.touch(id);
-            var storedList = _session.get(id, 'leaveList');
-            var existingList = storedList.length;
+//            var storedList = _session.get(id, 'leaveList');
+//            var existingList = storedList.length;
             var serial = (message.text * 1) - 1;
             if (serial < (existingList * 1)) {
                 _session.touch(id);

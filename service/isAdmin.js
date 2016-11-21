@@ -1,7 +1,6 @@
-var request = require('request');
 require('node-import');
 imports('config/index');
-
+var request = require('request');
 var cache = {};
 
 exports.checkType = function (id, callback) {

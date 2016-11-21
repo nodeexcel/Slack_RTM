@@ -1,10 +1,9 @@
+require('node-import');
+imports('config/index');
 var request = require('request');
 var request_send = require('../slack/send');
 var _session = require('../session');
 var async = require("async");
-
-require('node-import');
-imports('config/index');
 
 exports.getLeaveStatus = function (message, dm, setId, rtm, callback) {
     var approved_message = '', pending_message = '', cancelled_message = '';

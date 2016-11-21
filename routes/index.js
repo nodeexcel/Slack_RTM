@@ -1,6 +1,5 @@
 require('node-import');
 imports('config/index');
-
 var express = require('express');
 var router = express.Router();
 var _leaveStatus = require('../service/leave/status');
@@ -88,7 +87,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             } else {
                 _session.touch(setId);
                 _session.set(setId, 'sub_command', false);
-                rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from above options.", dm.id);
+                rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from given options.", dm.id);
             }
         } else {
             _session.touch(setId);
@@ -109,7 +108,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
     } else {
         _session.touch(setId);
         _session.set(setId, 'command', false);
-        rtm.sendMessage("I don't understand" + " " + message.text + ". " + "Please use 'help' to see all options" + '.', dm.id);
+        rtm.sendMessage("I don't understand" + " " + message.text + ". " + "Please use 'help' to see all options.", dm.id);
     }
 });
 
