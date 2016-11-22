@@ -14,7 +14,7 @@ exports.userSummary = function (message, dm, id, rtm, callback) {
     if (!task) {
         rtm.sendMessage('Please Wait..', dm.id);
         _session.touch(id);
-        _user.allLeaves('U0FJMLYR1', function (res) {
+        _user.allLeaves(message.user, function (res) {
             _session.touch(id);
             if (res.error == 0) {
                 _session.touch(id);

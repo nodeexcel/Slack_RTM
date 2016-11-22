@@ -10,7 +10,7 @@ exports.getLeaveStatus = function (message, dm, setId, rtm, callback) {
     request({
         url: config.url, //URL to hit
         method: 'POST',
-        qs: {"action": 'get_my_leaves', "userslack_id": 'U0FJMLYR1'}
+        qs: {"action": 'get_my_leaves', "userslack_id": message.user}
     }, function (error, response, body) {
         if (error) {
             rtm.sendMessage('Oops! Some error occurred. We are looking into it. In the mean time you can check your leave status of HR system.', dm.id);
