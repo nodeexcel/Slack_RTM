@@ -13,7 +13,7 @@ exports.cancel = function (role, message, dm, id, rtm, user, callback) {
         request({
             url: config.leaveApply_API_URL, //URL to hit
             method: 'POST',
-            qs: {"action": 'get_my_leaves', "userslack_id": message.user}
+            qs: {"action": 'get_my_leaves', "userslack_id": 'U0FJMLYR1'}
         }, function (error, response, body) {
             if (error) {
                 callback(error);
@@ -78,7 +78,7 @@ exports.cancel = function (role, message, dm, id, rtm, user, callback) {
                 var userId = _session.get(id, 'userId');
                 var myFromDate = moment(getFrom, 'DD-MM-YYYY').format('YYYY-MM-DD');
                 url = config.leaveApply_API_URL;
-                paramaters = {"action": 'cancel_applied_leave_admin', "userslack_id": message.user, "user_id": userId, "date": myFromDate};
+                paramaters = {"action": 'cancel_applied_leave_admin', "userslack_id": 'U0FJMLYR1', "user_id": userId, "date": myFromDate};
                 request_send.cancel(message, paramaters, url, function (response, error, msg) {
                     var resp = JSON.parse(response);
                     if (resp.error == 0) {
@@ -110,7 +110,7 @@ exports.cancel = function (role, message, dm, id, rtm, user, callback) {
                     var getFrom = _session.get(id, 'from');
                     var myFromDate = moment(getFrom, 'DD-MM-YYYY').format('YYYY-MM-DD');
                     url = config.leaveApply_API_URL;
-                    paramaters = {"action": 'cancel_applied_leave', "userslack_id": message.user, "date": myFromDate};
+                    paramaters = {"action": 'cancel_applied_leave', "userslack_id": 'U0FJMLYR1', "date": myFromDate};
                     request_send.cancel(message, paramaters, url, function (response, error, msg) {
                         var resp = JSON.parse(response);
                         if (resp.error == 0) {

@@ -48,7 +48,7 @@ exports._apply = function (message, dm, id, rtm, user, callback) {
             _session.touch(id);
             var myFromDate = moment(getFrom, 'DD-MM-YYYY').format('YYYY-MM-DD');
             var myToDate = moment(getTo, 'DD-MM-YYYY').format('YYYY-MM-DD');
-            leave_.leaveApply(message.user, myFromDate, myToDate, number_of_day, reason, function (status) {
+            leave_.leaveApply('U0FJMLYR1', myFromDate, myToDate, number_of_day, reason, function (status) {
                 if (status == 0) {
                     rtm.sendMessage('Your leave has been submitted approval!', dm.id);
                     _session.destroy(id, rtm, 'You have completed your task successfully!!');
