@@ -91,3 +91,18 @@ exports.approveLeave = function (id, leaveId, callback) {
         }
     });
 };
+
+exports.allLeaves = function (id, callback) {
+    request({
+        url: config.leaveApply_API_URL, //URL to hit
+        method: 'GET',
+        qs: {"action": 'get_user_current_status', "userslack_id": id}
+    }, function (error, response, body) {
+        if (error) {
+            callback(error);
+        } else {
+            var res = JSON.parse(body);
+            callback(res);
+        }
+    });
+};

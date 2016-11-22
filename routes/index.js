@@ -8,6 +8,7 @@ var _session = require('../service/session');
 var _cancelLeave = require('../service/leave/cancel');
 var _checkUser = require('../service/isAdmin');
 var _users = require('../service/leave/users');
+var _summary = require('../service/leave/summary');
 var RtmClient = require('@slack/client').RtmClient;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
@@ -84,6 +85,10 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 _session.touch(setId);
                 _users.userDetail(message, dm, setId, rtm, function (res) {
                 });
+            } else if (_subCommand == 'summary' && (_role == 'admin' || _role == 'hr')) {
+                _session.touch(setId);
+                _summary.userSummary(message, dm, setId, rtm, function (res) {
+                });
             } else {
                 _session.touch(setId);
                 _session.set(setId, 'sub_command', false);
@@ -100,7 +105,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                     _role = _session.get(setId, 'role');
                     if (_role == 'admin' || _role == 'hr') {
                         _session.touch(setId);
-                        rtm.sendMessage('Since your an ' + _role + ', there more options for you: \n 4. users (Reject, cancel or see status of users using this option)', dm.id);
+                        rtm.sendMessage('Since your an ' + _role + ', there more options for you: \n 4. users (Reject, cancel or see status of users using this option) \n 5. summary (show upcoming leaves)', dm.id);
                     }
                 });
             }
