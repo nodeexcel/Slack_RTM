@@ -1,8 +1,8 @@
+require('node-import');
+imports('config/index');
 var leave_ = require('../leaveApply');
 var _session = require('../session');
 var moment = require('moment');
-require('node-import');
-imports('config/index');
 
 exports._apply = function (message, dm, id, rtm, user, callback) {
     var task = _session.get(id, 'task');

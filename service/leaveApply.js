@@ -1,6 +1,6 @@
-var request = require('request');
 require('node-import');
 imports('config/index');
+var request = require('request');
 
 exports.leaveApply = function (id, from, to, number_of_day, reason, callback) {
     request({

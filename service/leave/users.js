@@ -50,7 +50,6 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 rtm.sendMessage('Please enter a valid user id. Please enter user id again: ', dm.id);
             } else {
                 _user.getUserLeave(message.user, message.text, function (res) {
-//            var savedLeaveList = res[message.user].leaveList;
                     var savedLeaveList = res;
                     _session.touch(id);
                     var month = moment().format('M');
@@ -133,7 +132,6 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                                 } else {
                                     _session.destroy(id, rtm, 'There is no applied leave for you!!');
                                 }
-//                                rtm.sendMessage('These are your options: \n 1. cancel (Cancel leave using this option) \n 2. reject (Reject leave using this option) \n 3. approve (Approve leave using this option)', dm.id);
                             }
                         });
                     } else {
@@ -167,8 +165,6 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
             rtm.sendMessage('Please enter the serial number of leave which you want to ' + _subtask + '.', dm.id);
         } else if (_subtask == 'cancelLeave') {
             _session.touch(id);
-//            var storedList = _session.get(id, 'leaveList');
-//            var existingList = storedList.length;
             var serial = (message.text * 1) - 1;
             if (serial < (existingList * 1)) {
                 _session.touch(id);
@@ -178,8 +174,6 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 _user.cancelLeave(message.user, userId, date, function (res) {
                     if (res.error == 0) {
                         _session.touch(id);
-//                        _session.set(id, 'sub_task', false);
-//                        _session.set(id, 'task', false);
                         rtm.sendMessage(res.data.message, dm.id);
                         _session.destroy(id, rtm, 'You have completed your task successfully!!');
                         callback(0);
@@ -189,7 +183,6 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
                 });
             } else {
                 _session.touch(id);
-//                _session.set(id, 'sub_task', 'cancelLeave');
                 rtm.sendMessage('Invalid Serial Number. So please enter again a valid serial number.', dm.id);
             }
         } else if (_subtask == 'approve') {
@@ -202,8 +195,6 @@ exports.userDetail = function (message, dm, id, rtm, callback) {
             }
         } else if (_subtask == 'approveLeave') {
             _session.touch(id);
-//            var storedList = _session.get(id, 'leaveList');
-//            var existingList = storedList.length;
             var serial = (message.text * 1) - 1;
             if (serial < (existingList * 1)) {
                 _session.touch(id);
