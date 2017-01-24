@@ -76,6 +76,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                 rtm.sendMessage(user.name + '! ' + body, dm.id);
             }
         });
+        
     } else if (_command == 'get_lunch_break_detail') {
         _session.touch(setId);
         _session.set(setId, 'command', false);
