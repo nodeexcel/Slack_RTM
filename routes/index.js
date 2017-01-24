@@ -13,6 +13,7 @@ var RtmClient = require('@slack/client').RtmClient;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 var token = process.env.SLACK_API_TOKEN || '';
+var request = require('request');
 
 var rtm = new RtmClient(token, {
     logLevel: 'error',
@@ -59,6 +60,40 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         _session.set(setId, 'command', false);
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
         rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
+    } else if (_command == 'lunch_start' || _command == 'lunch_end') {
+        _session.touch(setId);
+        _session.set(setId, 'command', false);
+        request({
+            url: 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php', //URL to hit
+            method: 'GET',
+            qs: {"action": 'lunch_break', lunch: _command, "userslack_id": user.id}
+        }, function (error, response, body) {
+            if (error) {
+                rtm.sendMessage('oops! some error occured', dm.id);
+                console.log(err)
+            } else {
+                var p = JSON.parse(body);
+                rtm.sendMessage(user.name + '! ' + body, dm.id);
+            }
+        });
+    } else if (_command == 'get_lunch_break_detail') {
+        _session.touch(setId);
+        _session.set(setId, 'command', false);
+        request({
+            url: 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php', //URL to hit
+            method: 'GET',
+            qs: {"action": 'get_lunch_break_detail', "userslack_id": user.id}
+        }, function (error, response, body) {
+            if (error) {
+                rtm.sendMessage('oops! some error occured', dm.id);
+                console.log(err)
+            } else {
+                var p = JSON.parse(body);
+                for (var i = 0; i < p.data.length; i++) {
+                    rtm.sendMessage(user.name + '! ' + "your's lunch starting time is " + p.data[i].lunch_start + ' and end time is ' + p.data[i].lunch_end, dm.id);
+                }
+            }
+        });
     } else if (_command == 'leave') {
         _session.touch(setId);
         var _role = _session.get(setId, 'role');
