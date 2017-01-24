@@ -14,6 +14,7 @@ var MemoryDataStore = require('@slack/client').MemoryDataStore;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 var token = process.env.SLACK_API_TOKEN || '';
 var request = require('request');
+var _ = require('lodash');
 
 var rtm = new RtmClient(token, {
     logLevel: 'error',
@@ -70,28 +71,52 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         }, function (error, response, body) {
             if (error) {
                 rtm.sendMessage('oops! some error occured', dm.id);
-                console.log(err)
             } else {
                 var p = JSON.parse(body);
-                rtm.sendMessage(user.name + '! ' + body, dm.id);
+                rtm.sendMessage(user.name + '! ' + p.data, dm.id);
             }
         });
-        
+
+    } else if (_command == 'get_lunch_stats') {
+        _session.touch(setId);
+        _session.set(setId, 'command', false);
+        request({
+            url: 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php', //URL to hit
+            method: 'GET',
+            qs: {"action": _command, "userslack_id": user.id}
+        }, function (error, response, body) {
+            if (error) {
+                rtm.sendMessage('oops! some error occured', dm.id);
+            } else {
+                var p = JSON.parse(body);
+                if (p.error == 1) {
+                    rtm.sendMessage(user.name + '! ' + p.data.message, dm.id);
+                } else {
+                    _.forEach(p.data, function (value, key) {
+                        rtm.sendMessage(value, dm.id)
+                    });
+                }
+            }
+        });
     } else if (_command == 'get_lunch_break_detail') {
         _session.touch(setId);
         _session.set(setId, 'command', false);
         request({
             url: 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php', //URL to hit
             method: 'GET',
-            qs: {"action": 'get_lunch_break_detail', "userslack_id": user.id}
+            qs: {"action": _command, "userslack_id": user.id}
         }, function (error, response, body) {
             if (error) {
                 rtm.sendMessage('oops! some error occured', dm.id);
-                console.log(err)
             } else {
                 var p = JSON.parse(body);
-                for (var i = 0; i < p.data.length; i++) {
-                    rtm.sendMessage(user.name + '! ' + "your's lunch starting time is " + p.data[i].lunch_start + ' and end time is ' + p.data[i].lunch_end, dm.id);
+                if (p.error == 1) {
+                    rtm.sendMessage(user.name + '! ' + p.data.message, dm.id);
+                } else {
+                    rtm.sendMessage(user.name + '! ', dm.id);
+                    for (i = 0; i < p.data.length; i++) {
+                        rtm.sendMessage('your lunch start at ' + p.data[i].lunch_start + ' and lunch end at ' + p.data[i].lunch_start, dm.id);
+                    }
                 }
             }
         });
