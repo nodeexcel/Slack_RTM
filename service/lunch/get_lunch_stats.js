@@ -15,7 +15,7 @@ exports._get_lunch_stats = function (message, dm, id, rtm, user, _subCommand, ca
             var p = JSON.parse(response);
             if (p.error == 1) {
                 rtm.sendMessage(user.name + '! ' + p.data.message, dm.id);
-                session.destroy(id, rtm, "You have not completed your task successfully!! Please use 'help' to see all options.");
+                _session.destroy(id, rtm, "You have not completed your task successfully!! Please use 'help' to see all options.");
             } else {
                 _.forEach(p.data, function (value, key) {
                     rtm.sendMessage(value, dm.id);
