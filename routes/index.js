@@ -141,7 +141,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             }
         } else {
             _session.touch(setId);
-            rtm.sendMessage('These are the different options for you: \n 1. lunch_start (start your lunch using this option) \n 2. lunch_end (end your lunch using this option) \n 3. get_lunch_break_detail (get all the lunch details of the month using this option) \n  ', dm.id);
+            rtm.sendMessage('These are the different options for you: \n 1. lunch_start (start your lunch using this option) \n 2. lunch_end (end your lunch using this option) \n 3. get_lunch_break_detail (get all the lunch details of the month using this option)\n 4. get_lunch_stats(valid only for admin or HR) \n  ', dm.id);
         }
     } else {
         _session.touch(setId);
