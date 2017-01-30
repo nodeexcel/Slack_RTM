@@ -9,6 +9,9 @@ var _cancelLeave = require('../service/leave/cancel');
 var _checkUser = require('../service/isAdmin');
 var _users = require('../service/leave/users');
 var _summary = require('../service/leave/summary');
+var lunch = require('../service/lunch/lunch_start');
+var get_lunch_stats = require('../service/lunch/get_lunch_stats');
+var get_lunch_break_detail = require('../service/lunch/get_lunch_break_detail');
 var RtmClient = require('@slack/client').RtmClient;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
@@ -60,66 +63,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         _session.touch(setId);
         _session.set(setId, 'command', false);
         rtm.sendMessage('hello ' + user.name + '!', dm.id);
-        rtm.sendMessage('These are the different options for you: \n 1. leave', dm.id);
-    } else if (_command == 'lunch_start' || _command == 'lunch_end') {
-        _session.touch(setId);
-        _session.set(setId, 'command', false);
-        request({
-            url: 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php', //URL to hit
-            method: 'GET',
-            qs: {"action": 'lunch_break', lunch: _command, "userslack_id": user.id}
-        }, function (error, response, body) {
-            if (error) {
-                rtm.sendMessage('oops! some error occured', dm.id);
-            } else {
-                var p = JSON.parse(body);
-                rtm.sendMessage(user.name + '! ' + p.data, dm.id);
-            }
-        });
-
-    } else if (_command == 'get_lunch_stats') {
-        _session.touch(setId);
-        _session.set(setId, 'command', false);
-        request({
-            url: 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php', //URL to hit
-            method: 'GET',
-            qs: {"action": _command, "userslack_id": user.id}
-        }, function (error, response, body) {
-            if (error) {
-                rtm.sendMessage('oops! some error occured', dm.id);
-            } else {
-                var p = JSON.parse(body);
-                if (p.error == 1) {
-                    rtm.sendMessage(user.name + '! ' + p.data.message, dm.id);
-                } else {
-                    _.forEach(p.data, function (value, key) {
-                        rtm.sendMessage(value, dm.id)
-                    });
-                }
-            }
-        });
-    } else if (_command == 'get_lunch_break_detail') {
-        _session.touch(setId);
-        _session.set(setId, 'command', false);
-        request({
-            url: 'http://dev.hr.excellencetechnologies.in/hr/attendance/API_HR/api.php', //URL to hit
-            method: 'GET',
-            qs: {"action": _command, "userslack_id": user.id}
-        }, function (error, response, body) {
-            if (error) {
-                rtm.sendMessage('oops! some error occured', dm.id);
-            } else {
-                var p = JSON.parse(body);
-                if (p.error == 1) {
-                    rtm.sendMessage(user.name + '! ' + p.data.message, dm.id);
-                } else {
-                    rtm.sendMessage(user.name + '! ', dm.id);
-                    for (i = 0; i < p.data.length; i++) {
-                        rtm.sendMessage('your lunch start at ' + p.data[i].lunch_start + ' and lunch end at ' + p.data[i].lunch_start, dm.id);
-                    }
-                }
-            }
-        });
+        rtm.sendMessage('These are the different options for you: \n 1. leave  \n 2. lunch', dm.id);
     } else if (_command == 'leave') {
         _session.touch(setId);
         var _role = _session.get(setId, 'role');
@@ -157,7 +101,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             }
         } else {
             _session.touch(setId);
-            rtm.sendMessage('These are the different options for you: \n 1. apply (Apply leave using this option) \n 2. status (Check the status of your leaves using this option) \n 3. cancel (Cancel your leaves using this option)', dm.id);
+            rtm.sendMessage('These are the different options for you: \n 1. apply (Apply leave using this option) \n 2. status (Check the status of your leaves using this option) \n 3. cancel (Cancel your leaves using this option) \n  ', dm.id);
             if (!_session.get(setId, 'role')) {
                 _session.touch(setId);
                 _checkUser.checkType(message.user, function (res) {
@@ -170,6 +114,34 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
                     }
                 });
             }
+        }
+    } else if (_command == 'lunch') {
+        _session.touch(setId);
+        if (text) {
+            if (!_session.get(setId, 'sub_command')) {
+                _session.set(setId, 'sub_command', text);
+            }
+            var _subCommand = _session.get(setId, 'sub_command');
+            if (_subCommand == 'lunch_start' || _subCommand == 'lunch_end') {
+                _session.touch(id);
+                lunch._lunch_start(message, dm, setId, rtm, user, _subCommand, function (response) {
+                });
+            } else if (_subCommand == 'get_lunch_stats') {
+                _session.touch(setId);
+                get_lunch_stats._get_lunch_stats(message, dm, setId, rtm, user, _subCommand, function (response) {
+                });
+            } else if (_subCommand == 'get_lunch_break_detail') {
+                _session.touch(setId);
+                get_lunch_break_detail._get_lunch_break_detail(message, dm, setId, rtm, user, _subCommand, function (response) {
+                });
+            } else {
+                _session.touch(setId);
+                _session.set(setId, 'sub_command', false);
+                rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from given options.", dm.id);
+            }
+        } else {
+            _session.touch(setId);
+            rtm.sendMessage('These are the different options for you: \n 1. lunch_start (start your lunch using this option) \n 2. lunch_end (end your lunch using this option) \n 3. get_lunch_break_detail (get all the lunch details of the month using this option) \n  ', dm.id);
         }
     } else {
         _session.touch(setId);

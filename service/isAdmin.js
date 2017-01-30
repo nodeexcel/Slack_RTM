@@ -16,6 +16,7 @@ exports.checkType = function (id, callback) {
             if (error) {
                 callback(error);
             } else {
+
                 var res = JSON.parse(body);
 //                callback(res);
                 cache[id]['role'] = res.role.toLowerCase();
@@ -23,7 +24,6 @@ exports.checkType = function (id, callback) {
             }
         });
     }
-
 };
 
 exports.userList = function (id, callback) {
