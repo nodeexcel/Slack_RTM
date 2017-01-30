@@ -1,6 +1,7 @@
 var _session = require('../session');
 var moment = require('moment');
 var request = require('request');
+var _ = require('lodash');
 require('node-import');
 imports('config/index');
 
@@ -8,7 +9,7 @@ exports._get_lunch_stats = function (message, dm, id, rtm, user, _subCommand, ca
     request({
         url: config.leaveApply_API_URL, //URL to hit
         method: 'GET',
-        qs: {"action": _subCommand, "userslack_id": user.id}
+        qs: {"action": _subCommand, "userslack_id": 'U0FJZ0KDM'}
     }, function (error, response, body) {
         if (error) {
             rtm.sendMessage('oops! some error occured', dm.id);
