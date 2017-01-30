@@ -6,7 +6,7 @@ imports('config/index');
 
 exports._get_lunch_break_detail = function (message, dm, id, rtm, user, _subCommand, callback) {
     url = config.leaveApply_API_URL;
-    paramaters = {"action": _subCommand, "userslack_id": 'U0FJZ0KDM'};
+    paramaters = {"action": _subCommand, "userslack_id": user.id};
     request_send.cancel(message, paramaters, url, function (response, error, msg) {
         if (error) {
             rtm.sendMessage('oops! some error occured', dm.id);
