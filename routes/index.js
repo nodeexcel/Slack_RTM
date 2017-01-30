@@ -123,7 +123,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
             }
             var _subCommand = _session.get(setId, 'sub_command');
             if (_subCommand == 'lunch_start' || _subCommand == 'lunch_end') {
-                _session.touch(id);
+                _session.touch(setId);
                 lunch._lunch_start(message, dm, setId, rtm, user, _subCommand, function (response) {
                 });
             } else if (_subCommand == 'get_lunch_stats') {
