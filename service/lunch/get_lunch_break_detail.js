@@ -17,7 +17,7 @@ exports._get_lunch_break_detail = function (message, dm, id, rtm, user, _subComm
             } else {
                 rtm.sendMessage(user.name + '! ', dm.id);
                 for (i = 0; i < p.data.length; i++) {
-                    rtm.sendMessage('your lunch start at ' + p.data[i].lunch_start + ' and lunch end at ' + p.data[i].lunch_start + ' and total time is ' +p.data[i].total_time +'min', dm.id);
+                    rtm.sendMessage('your lunch start at ' + p.data[i].lunch_start + ' and lunch end at ' + p.data[i].lunch_end + ' and total time is ' +p.data[i].total_time +'min', dm.id);
                 }
                 _session.destroy(id, rtm, 'You have completed your task successfully!!');
             }
