@@ -5,10 +5,10 @@ var _ = require('lodash');
 require('node-import');
 imports('config/index');
 
-exports._get_lunch_stats = function (message, dm, id, rtm, user, _subCommand, callback) {
+exports._get_lunch_stats = function(message, dm, id, rtm, user, _subCommand, callback) {
     url = config.leaveApply_API_URL;
-    paramaters = {"action": _subCommand, "userslack_id": user.id};
-    request_send.cancel(message, paramaters, url, function (response, error, msg) {
+    paramaters = { "action": _subCommand, "userslack_id": user.id };
+    request_send.cancel(message, paramaters, url, function(response, error, msg) {
         var records = '';
         if (error) {
             rtm.sendMessage('oops! some error occured', dm.id);
@@ -23,8 +23,11 @@ exports._get_lunch_stats = function (message, dm, id, rtm, user, _subCommand, ca
                 }
                 _session.destroy(id, rtm, "You have not completed your task successfully!! Please use 'help' to see all options.");
             } else {
-                _.forEach(p.data, function (value, key) {
-                    records = records + value + '\n';
+                _.forEach(p.data, function(value, key) {
+                    records = records + key + '\n';
+                    _.forEach(value, function(value1, key1) {
+                        records = records + value1.name + ':' + value1.diff + ' min | ' + value1.lunch_start + ' - ' + value1.lunch_end + ' | Average time ' + value1.average + ' min\n';
+                    });
                 });
                 rtm.sendMessage(records, dm.id);
                 _session.destroy(id, rtm, 'You have completed your task successfully!!');
