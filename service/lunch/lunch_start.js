@@ -11,7 +11,10 @@ exports._lunch_start = function (message, dm, id, rtm, user, _subCommand, callba
         if (error) {
             rtm.sendMessage('oops! some error occured', dm.id);
         } else {
+            console.log( response );
             var p = JSON.parse(response);
+            console.log( p );
+            console.log( user.name + '! ' + p.data, dm.id );
             rtm.sendMessage(user.name + '! ' + p.data, dm.id);
             _session.destroy(id, rtm, 'You have completed your task successfully!!');
         }
