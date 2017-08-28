@@ -117,32 +117,34 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
         }
     } else if (_command == 'lunch') {
         _session.touch(setId);
-        if (text) {
-            if (!_session.get(setId, 'sub_command')) {
-                _session.set(setId, 'sub_command', text);
-            }
-            var _subCommand = _session.get(setId, 'sub_command');
-            if (_subCommand == 'lunch_start' || _subCommand == 'lunch_end') {
-                _session.touch(setId);
-                lunch._lunch_start(message, dm, setId, rtm, user, _subCommand, function (response) {
-                });
-            } else if (_subCommand == 'get_lunch_stats') {
-                _session.touch(setId);
-                get_lunch_stats._get_lunch_stats(message, dm, setId, rtm, user, _subCommand, function (response) {
-                });
-            } else if (_subCommand == 'get_lunch_break_detail') {
-                _session.touch(setId);
-                get_lunch_break_detail._get_lunch_break_detail(message, dm, setId, rtm, user, _subCommand, function (response) {
-                });
-            } else {
-                _session.touch(setId);
-                _session.set(setId, 'sub_command', false);
-                rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from given options.", dm.id);
-            }
-        } else {
-            _session.touch(setId);
-            rtm.sendMessage('These are the different options for you: \n 1. lunch_start (start your lunch using this option) \n 2. lunch_end (end your lunch using this option) \n 3. get_lunch_break_detail (get all the lunch details of the month using this option)\n 4. get_lunch_stats(valid only for admin or HR) \n  ', dm.id);
-        }
+        rtm.sendMessage('No need to do this operation!!!\n Cheers \n :)', dm.id);
+
+        // if (text) {
+        //     if (!_session.get(setId, 'sub_command')) {
+        //         _session.set(setId, 'sub_command', text);
+        //     }
+        //     var _subCommand = _session.get(setId, 'sub_command');
+        //     if (_subCommand == 'lunch_start' || _subCommand == 'lunch_end') {
+        //         _session.touch(setId);
+        //         lunch._lunch_start(message, dm, setId, rtm, user, _subCommand, function (response) {
+        //         });
+        //     } else if (_subCommand == 'get_lunch_stats') {
+        //         _session.touch(setId);
+        //         get_lunch_stats._get_lunch_stats(message, dm, setId, rtm, user, _subCommand, function (response) {
+        //         });
+        //     } else if (_subCommand == 'get_lunch_break_detail') {
+        //         _session.touch(setId);
+        //         get_lunch_break_detail._get_lunch_break_detail(message, dm, setId, rtm, user, _subCommand, function (response) {
+        //         });
+        //     } else {
+        //         _session.touch(setId);
+        //         _session.set(setId, 'sub_command', false);
+        //         rtm.sendMessage("I don't understand" + " " + message.text + ". So please choose from given options.", dm.id);
+        //     }
+        // } else {
+        //     _session.touch(setId);
+        //     rtm.sendMessage('These are the different options for you: \n 1. lunch_start (start your lunch using this option) \n 2. lunch_end (end your lunch using this option) \n 3. get_lunch_break_detail (get all the lunch details of the month using this option)\n 4. get_lunch_stats(valid only for admin or HR) \n  ', dm.id);
+        // }
     } else {
         _session.touch(setId);
         _session.set(setId, 'command', false);
